@@ -1,0 +1,12 @@
+{
+	"schemaVersion": 1,
+	"id": "mummy-gametest",
+	"version": "1.0.0",
+	"name": "Mummy Game Tests",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-client-gametest": [
+			"me.kowalkowski.mummy.test.MummyClientGameTest"
+		]
+	}
+}
