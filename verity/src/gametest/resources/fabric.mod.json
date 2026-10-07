@@ -1,0 +1,12 @@
+{
+	"schemaVersion": 1,
+	"id": "verity-gametest",
+	"version": "1.0.0",
+	"name": "verity game tests",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-client-gametest": [
+			"me.kowalkowski.verity.test.VerityClientGameTest"
+		]
+	}
+}

@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "mummy",
+	"version": "${version}",
+	"name": "Mummy",
+	"description": "Adds the Mummy: a cute bandage-wrapped undead that roams deserts, with glowing eyes and loose bandages that sway like cloth.",
+	"authors": [
+		"Michal Kowalkowski"
+	],
+	"license": "MIT",
+	"icon": "assets/mummy/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"me.kowalkowski.mummy.MummyMod"
+		],
+		"client": [
+			"me.kowalkowski.mummy.client.MummyModClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

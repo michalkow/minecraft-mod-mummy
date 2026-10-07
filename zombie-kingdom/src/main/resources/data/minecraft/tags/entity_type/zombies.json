@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "zombie_kingdom:zombie_king",
+    "zombie_kingdom:zombie_princess",
+    "zombie_kingdom:zombie_knight",
+    "zombie_kingdom:zombie_archer"
+  ]
+}

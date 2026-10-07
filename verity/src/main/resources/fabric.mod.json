@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "verity",
+	"version": "${version}",
+	"name": "Verity",
+	"description": "Adds Verity: a sunshine-yellow zombie with a big smiley face.",
+	"authors": [
+		"Michal Kowalkowski"
+	],
+	"license": "MIT",
+	"icon": "assets/verity/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"me.kowalkowski.verity.VerityMod"
+		],
+		"client": [
+			"me.kowalkowski.verity.client.VerityModClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"mixins": [
+		"verity.mixins.json"
+	]
+}

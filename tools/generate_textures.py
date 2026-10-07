@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Generates every texture the Mummy mod ships with.
+"""Generates every texture the three mods ship with (Mummy, Verity, Zombie Kingdom).
 
 All art is drawn procedurally onto the vanilla zombie UV layouts (adult 64x64
-HumanoidModel and the 26.x BabyZombieModel), so the mummy can reuse the zombie
-models unchanged. The loose, animated bandage strips (MummyBandagesModel) use
-the free lower half of each texture. Run from the repository root:
+HumanoidModel and the 26.x BabyZombieModel), so the mobs can reuse the zombie
+models unchanged. Loose cloth (bandages, cape, skirt) and crowns use the free
+lower half of the textures or separate regalia textures. Run from the
+repository root:
 
     python3 tools/generate_textures.py
 
@@ -18,10 +19,16 @@ import random
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ASSETS = os.path.join(ROOT, "src", "main", "resources", "assets", "mummy")
-ENTITY_DIR = os.path.join(ASSETS, "textures", "entity", "mummy")
-ITEM_DIR = os.path.join(ASSETS, "textures", "item")
-EXTRA_DIR = os.path.join(ROOT, "curseforge")
+
+
+def assets(project, mod_id):
+    return os.path.join(ROOT, project, "src", "main", "resources", "assets", mod_id)
+
+
+MUMMY_ASSETS = assets("mummy", "mummy")
+VERITY_ASSETS = assets("verity", "verity")
+KINGDOM_ASSETS = assets("zombie-kingdom", "zombie_kingdom")
+CURSEFORGE = os.path.join(ROOT, "curseforge")
 
 # Clean, bright linen (light to dark) and the soft shadow between wraps.
 LINEN = [(246, 242, 228), (232, 225, 204), (214, 205, 180), (190, 179, 151)]
@@ -37,7 +44,7 @@ EYE_GLOW = (255, 170, 60)
 SPARKLE = (255, 250, 236)
 CLEAR = (0, 0, 0, 0)
 
-# Mirrors ADULT_STRIPS / BABY_STRIPS in MummyBandagesModel.java:
+# Mirrors ADULT_STRIPS / BABY_STRIPS in mummy/.../MummyRenderer.java:
 # (u, v, width, segment_length, segments, sideways)
 ADULT_STRIPS = [
     (0, 32, 3, 3, 3, False),   # right arm
@@ -944,76 +951,124 @@ def front_view(skin: Image.Image) -> Image.Image:
     return fig
 
 
-def icon(skin, size):
+def backdrop(size, theme):
+    """A square background for icons and logos: desert dusk, sunny meadow or castle wall."""
     bg = Image.new("RGBA", (size, size))
     horizon = int(size * 0.72)
+    sky_top, sky_low, ground_top, ground_low, sun = {
+        "desert": ((58, 40, 82), (238, 146, 74), (222, 180, 112), (184, 140, 80), (255, 214, 120)),
+        "meadow": ((92, 160, 240), (186, 222, 255), (110, 186, 74), (78, 148, 52), (255, 236, 110)),
+        "castle": ((70, 110, 200), (160, 200, 255), (128, 128, 128), (96, 96, 96), (255, 236, 160)),
+    }[theme]
+    rng = random.Random(size)
     for y in range(size):
-        if y < horizon:  # dusk sky
-            c = mix((58, 40, 82), (238, 146, 74), y / horizon)
-        else:            # dunes
-            c = mix((222, 180, 112), (184, 140, 80), (y - horizon) / (size - horizon))
         for x in range(size):
+            if y < horizon:
+                c = mix(sky_top, sky_low, y / horizon)
+            elif theme == "castle":  # cobblestone wall
+                block = max(1, size // 16)
+                c = jitter(mix(ground_top, ground_low, ((x // block) * 7 + (y // block) * 3) % 5 / 5), random.Random(x // block * 977 + y // block), 10)
+            else:
+                c = mix(ground_top, ground_low, (y - horizon) / (size - horizon))
             bg.putpixel((x, y), c + (255,))
-    cx, cy, r = size * 0.72, horizon - size * 0.02, size * 0.16  # low sun
+    cx, cy = {"desert": (0.72, 0.70), "meadow": (0.22, 0.2), "castle": (0.84, 0.16)}[theme]
+    cx, cy, r = size * cx, size * cy, size * 0.12
     for y in range(horizon):
         for x in range(size):
             if (x - cx) ** 2 + (y - cy) ** 2 < r * r:
-                bg.putpixel((x, y), (255, 214, 120, 255))
-    # Upper-body portrait (head and torso) so the face reads at small sizes.
-    scale = max(1, (size * 9 // 10) // 20)
-    fig = front_view(skin).crop((0, 0, 16, 20)).resize((16 * scale, 20 * scale), Image.NEAREST)
+                bg.putpixel((x, y), sun + (255,))
+    if theme == "castle":  # red banners on the wall
+        w = max(2, size // 10)
+        for bx in (int(size * 0.08), size - int(size * 0.08) - w):
+            for y in range(horizon - size // 10, size):
+                for x in range(bx, bx + w):
+                    bg.putpixel((x, y), (176, 30, 44, 255) if (x - bx) not in (0, w - 1) else (238, 192, 62, 255))
+    return bg
+
+
+def portrait(skin, height):
+    """Head and torso (16x20 pixels of the front view), scaled to the given height."""
+    scale = max(1, height // 20)
+    return front_view(skin).crop((0, 0, 16, 20)).resize((16 * scale, 20 * scale), Image.NEAREST)
+
+
+def icon(skin, size, theme="desert"):
+    bg = backdrop(size, theme)
+    fig = portrait(skin, size * 9 // 10)
     bg.alpha_composite(fig, ((size - fig.width) // 2, size - fig.height))
     return bg
 
 
+def kingdom_icon(king, princess, size):
+    """The king and the princess side by side in front of their castle wall."""
+    bg = backdrop(size, "castle")
+    king_fig = portrait(king, size * 3 // 4)
+    princess_fig = portrait(princess, size * 3 // 5)
+    king_at = (size // 2 - king_fig.width + size // 16, size - king_fig.height)
+    princess_at = (size // 2 + size // 12, size - princess_fig.height)
+    bg.alpha_composite(king_fig, king_at)
+    bg.alpha_composite(princess_fig, princess_at)
+    # The crowns are 3D model parts in game, so paint them onto the portraits.
+    king_crown = [(x, -2, GOLD) for x in range(3, 13)] + [(x, -1, GOLD_DARK) for x in range(3, 13)] \
+        + [(x, -3, GOLD_LIGHT) for x in (3, 12)] + [(x, y, GOLD_LIGHT) for x in (7, 8) for y in (-4, -3)] \
+        + [(7, -2, RUBY), (8, -2, RUBY), (5, -2, SAPPHIRE), (10, -2, SAPPHIRE)]
+    princess_crown = [(x, -1, GOLD) for x in range(5, 11)] + [(5, -2, PEARL), (10, -2, PEARL)] \
+        + [(7, -2, GOLD), (8, -2, GOLD), (7, -3, ROSE), (8, -3, ROSE)]
+    for crown, fig, (fx, fy) in ((king_crown, king_fig, king_at), (princess_crown, princess_fig, princess_at)):
+        unit = fig.width // 16
+        for px, py, colour in crown:
+            for dx in range(unit):
+                for dy in range(unit):
+                    bg.putpixel((fx + px * unit + dx, fy + py * unit + dy), colour + (255,))
+    return bg
+
+
+def save(img, *path):
+    os.makedirs(os.path.dirname(os.path.join(*path)), exist_ok=True)
+    img.save(os.path.join(*path))
+
+
 def main():
-    os.makedirs(ENTITY_DIR, exist_ok=True)
-    os.makedirs(ITEM_DIR, exist_ok=True)
-    os.makedirs(EXTRA_DIR, exist_ok=True)
-
+    # ---- Mummy ----
     skin, eyes = adult_textures(random.Random(1922))  # Tutankhamun's tomb, 1922
-    skin.save(os.path.join(ENTITY_DIR, "mummy.png"))
-    eyes.save(os.path.join(ENTITY_DIR, "mummy_eyes.png"))
-
     baby, baby_eyes = baby_textures(random.Random(1923))
-    baby.save(os.path.join(ENTITY_DIR, "mummy_baby.png"))
-    baby_eyes.save(os.path.join(ENTITY_DIR, "mummy_baby_eyes.png"))
+    mummy_entity = os.path.join(MUMMY_ASSETS, "textures", "entity", "mummy")
+    save(skin, mummy_entity, "mummy.png")
+    save(eyes, mummy_entity, "mummy_eyes.png")
+    save(baby, mummy_entity, "mummy_baby.png")
+    save(baby_eyes, mummy_entity, "mummy_baby_eyes.png")
+    save(spawn_egg(random.Random(7)), MUMMY_ASSETS, "textures", "item", "mummy_spawn_egg.png")
+    save(icon(skin, 128), MUMMY_ASSETS, "icon.png")
+    save(icon(skin, 400), CURSEFORGE, "mummy", "logo.png")
 
-    spawn_egg(random.Random(7)).save(os.path.join(ITEM_DIR, "mummy_spawn_egg.png"))
-
-    king_dir = os.path.join(ASSETS, "textures", "entity", "zombie_king")
-    os.makedirs(king_dir, exist_ok=True)
-    king, king_baby = king_textures(random.Random(1066))
-    king.save(os.path.join(king_dir, "zombie_king.png"))
-    king_baby.save(os.path.join(king_dir, "zombie_king_baby.png"))
-    regalia_texture(random.Random(1067)).save(os.path.join(king_dir, "zombie_king_regalia.png"))
-    king_spawn_egg(random.Random(8)).save(os.path.join(ITEM_DIR, "zombie_king_spawn_egg.png"))
-
-    princess_dir = os.path.join(ASSETS, "textures", "entity", "zombie_princess")
-    os.makedirs(princess_dir, exist_ok=True)
-    princess, princess_baby = princess_textures(random.Random(1533))
-    princess.save(os.path.join(princess_dir, "zombie_princess.png"))
-    princess_baby.save(os.path.join(princess_dir, "zombie_princess_baby.png"))
-    princess_regalia_texture(random.Random(1534)).save(os.path.join(princess_dir, "zombie_princess_regalia.png"))
-    princess_spawn_egg(random.Random(9)).save(os.path.join(ITEM_DIR, "zombie_princess_spawn_egg.png"))
-
-    verity_dir = os.path.join(ASSETS, "textures", "entity", "verity")
-    os.makedirs(verity_dir, exist_ok=True)
+    # ---- Verity ----
     verity, verity_baby = verity_textures(random.Random(1963))
-    verity.save(os.path.join(verity_dir, "verity.png"))
-    verity_baby.save(os.path.join(verity_dir, "verity_baby.png"))
-    verity_spawn_egg(random.Random(10)).save(os.path.join(ITEM_DIR, "verity_spawn_egg.png"))
+    save(verity, VERITY_ASSETS, "textures", "entity", "verity", "verity.png")
+    save(verity_baby, VERITY_ASSETS, "textures", "entity", "verity", "verity_baby.png")
+    save(verity_spawn_egg(random.Random(10)), VERITY_ASSETS, "textures", "item", "verity_spawn_egg.png")
+    save(icon(verity, 128, "meadow"), VERITY_ASSETS, "icon.png")
+    save(icon(verity, 400, "meadow"), CURSEFORGE, "verity", "logo.png")
 
+    # ---- Zombie Kingdom ----
+    entity = os.path.join(KINGDOM_ASSETS, "textures", "entity")
+    item = os.path.join(KINGDOM_ASSETS, "textures", "item")
+    king, king_baby = king_textures(random.Random(1066))
+    save(king, entity, "zombie_king", "zombie_king.png")
+    save(king_baby, entity, "zombie_king", "zombie_king_baby.png")
+    save(regalia_texture(random.Random(1067)), entity, "zombie_king", "zombie_king_regalia.png")
+    save(king_spawn_egg(random.Random(8)), item, "zombie_king_spawn_egg.png")
+    princess, princess_baby = princess_textures(random.Random(1533))
+    save(princess, entity, "zombie_princess", "zombie_princess.png")
+    save(princess_baby, entity, "zombie_princess", "zombie_princess_baby.png")
+    save(princess_regalia_texture(random.Random(1534)), entity, "zombie_princess", "zombie_princess_regalia.png")
+    save(princess_spawn_egg(random.Random(9)), item, "zombie_princess_spawn_egg.png")
     for (name, adult), img in guard_textures(random.Random(1215)).items():
-        guard_dir = os.path.join(ASSETS, "textures", "entity", "zombie_" + name)
-        os.makedirs(guard_dir, exist_ok=True)
-        img.save(os.path.join(guard_dir, "zombie_" + name + ("" if adult else "_baby") + ".png"))
-    knight_spawn_egg(random.Random(11)).save(os.path.join(ITEM_DIR, "zombie_knight_spawn_egg.png"))
-    archer_spawn_egg(random.Random(12)).save(os.path.join(ITEM_DIR, "zombie_archer_spawn_egg.png"))
-
-    icon(skin, 128).save(os.path.join(ASSETS, "icon.png"))
-    icon(skin, 400).save(os.path.join(EXTRA_DIR, "logo.png"))
-    print("Textures written to", ASSETS)
+        save(img, entity, "zombie_" + name, "zombie_" + name + ("" if adult else "_baby") + ".png")
+    save(knight_spawn_egg(random.Random(11)), item, "zombie_knight_spawn_egg.png")
+    save(archer_spawn_egg(random.Random(12)), item, "zombie_archer_spawn_egg.png")
+    save(kingdom_icon(king, princess, 128), KINGDOM_ASSETS, "icon.png")
+    save(kingdom_icon(king, princess, 400), CURSEFORGE, "zombie-kingdom", "logo.png")
+    print("Textures written for mummy, verity and zombie-kingdom")
 
 
 if __name__ == "__main__":

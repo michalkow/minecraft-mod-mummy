@@ -10,4 +10,6 @@ pluginManagement {
 }
 
 // Should match your modid
-rootProject.name = 'mummy'
+rootProject.name = 'zombie-mods'
+
+include 'mummy', 'verity', 'zombie-kingdom'

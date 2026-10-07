@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "zombie_kingdom",
+	"version": "${version}",
+	"name": "Zombie Kingdom",
+	"description": "Abandoned zombie kingdoms with a cobblestone castle, home to the Zombie King and Zombie Princess (who stick together and celebrate with fireworks), their knights on zombie horses, archers, and a stable.",
+	"authors": [
+		"Michal Kowalkowski"
+	],
+	"license": "MIT",
+	"icon": "assets/zombie_kingdom/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"me.kowalkowski.zombiekingdom.ZombieKingdomMod"
+		],
+		"client": [
+			"me.kowalkowski.zombiekingdom.client.ZombieKingdomModClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	},
+	"mixins": [
+		"zombie_kingdom.mixins.json"
+	]
+}

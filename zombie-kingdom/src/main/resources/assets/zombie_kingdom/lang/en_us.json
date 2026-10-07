@@ -1,0 +1,10 @@
+{
+	"entity.zombie_kingdom.zombie_king": "Zombie King",
+	"item.zombie_kingdom.zombie_king_spawn_egg": "Zombie King Spawn Egg",
+	"entity.zombie_kingdom.zombie_princess": "Zombie Princess",
+	"item.zombie_kingdom.zombie_princess_spawn_egg": "Zombie Princess Spawn Egg",
+	"entity.zombie_kingdom.zombie_knight": "Zombie Knight",
+	"item.zombie_kingdom.zombie_knight_spawn_egg": "Zombie Knight Spawn Egg",
+	"entity.zombie_kingdom.zombie_archer": "Zombie Archer",
+	"item.zombie_kingdom.zombie_archer_spawn_egg": "Zombie Archer Spawn Egg"
+}

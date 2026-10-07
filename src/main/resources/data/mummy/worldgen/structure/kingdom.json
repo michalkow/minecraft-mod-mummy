@@ -1,7 +1,0 @@
-{
-  "type": "mummy:kingdom",
-  "biomes": "#mummy:has_structure/kingdom",
-  "spawn_overrides": {},
-  "step": "top_layer_modification",
-  "terrain_adaptation": "beard_box"
-}

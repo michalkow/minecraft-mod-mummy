@@ -1,117 +1,108 @@
+// Three Fabric mods built from one repository: mummy/, verity/ and zombie-kingdom/.
+// Each sub-project sets its mod_id, mod_version and archives_base_name in its own gradle.properties;
+// everything else is shared and configured here.
 plugins {
-	id 'net.fabricmc.fabric-loom' version "${loom_version}"
-	id 'maven-publish'
+	id 'net.fabricmc.fabric-loom' version "${loom_version}" apply false
 }
 
-base {
-	archivesName = project.archives_base_name
-}
+subprojects {
+	apply plugin: 'net.fabricmc.fabric-loom'
 
-repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
-}
+	version = project.mod_version
+	group = project.maven_group
 
-loom {
-	splitEnvironmentSourceSets()
-
-	mods {
-		"mummy" {
-			sourceSet sourceSets.main
-			sourceSet sourceSets.client
-		}
+	base {
+		archivesName = project.archives_base_name
 	}
-}
 
-fabricApi {
-	configureTests {
-		createSourceSet = true
-		modId = "mummy-gametest"
-		// Server game tests need the Minecraft EULA accepted in the test run directory,
-		// so only the client game test (singleplayer) is enabled.
-		enableGameTests = false
-		enableClientGameTests = true
-	}
-}
+	loom {
+		splitEnvironmentSourceSets()
 
-// Runs the client game tests against the built mod jar in a production-like game (as a launcher would run it),
-// alongside Fabric API, the game test API and the tests themselves.
-configurations {
-	productionTestMods
-}
-
-tasks.register("gametestJar", Jar) {
-	from sourceSets.gametest.output
-	archiveClassifier = "gametest"
-}
-
-tasks.register("runProductionClientGameTest", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
-	jvmArgs.add("-Dfabric.client.gametest")
-	mods.from(configurations.productionTestMods)
-	mods.from(tasks.named("gametestJar"))
-}
-
-dependencies {
-	// To change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-
-	productionTestMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-	productionTestMods fabricApi.module("fabric-client-gametest-api-v1", project.fabric_api_version)
-	productionTestMods fabricApi.module("fabric-gametest-api-v1", project.fabric_api_version)
-}
-
-processResources {
-	def version = project.version
-	inputs.property "version", version
-
-	filesMatching("fabric.mod.json") {
-		expand "version": version
-	}
-}
-
-tasks.withType(JavaCompile).configureEach {
-	it.options.release = 25
-}
-
-java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
-	withSourcesJar()
-
-	sourceCompatibility = JavaVersion.VERSION_25
-	targetCompatibility = JavaVersion.VERSION_25
-}
-
-jar {
-	def projectName = project.name
-	inputs.property "projectName", projectName
-
-	from("LICENSE") {
-		rename { "${it}_$projectName" }
-	}
-}
-
-// configure the maven publication
-publishing {
-	publications {
-		create("mavenJava", MavenPublication) {
-			from components.java
+		mods {
+			register(project.mod_id) {
+				sourceSet sourceSets.main
+				sourceSet sourceSets.client
+			}
 		}
 	}
 
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
+	fabricApi {
+		configureTests {
+			createSourceSet = true
+			modId = "${project.mod_id}-gametest"
+			// Server game tests need the Minecraft EULA accepted in the test run directory,
+			// so only the client game test (singleplayer) is enabled.
+			enableGameTests = false
+			enableClientGameTests = true
+		}
+	}
+
+	// Runs the client game tests against the built mod jar in a production-like game (as a launcher would run it),
+	// alongside Fabric API, the game test API and the tests themselves.
+	configurations {
+		productionTestMods
+	}
+
+	tasks.register("gametestJar", Jar) {
+		from sourceSets.gametest.output
+		archiveClassifier = "gametest"
+	}
+
+	tasks.register("runProductionClientGameTest", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+		// All sub-projects share Loom's asset cache; make Gradle aware of every writer.
+		dependsOn(rootProject.subprojects.collect { it.tasks.named("downloadAssets") })
+		jvmArgs.add("-Dfabric.client.gametest")
+		mods.from(configurations.productionTestMods)
+		mods.from(tasks.named("gametestJar"))
+	}
+
+	// The same, with the other two mods installed as well: checks the three get along in one game.
+	tasks.register("runProductionClientGameTestWithAllMods", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+		dependsOn(rootProject.subprojects.collect { it.tasks.named("downloadAssets") })
+		jvmArgs.add("-Dfabric.client.gametest")
+		mods.from(configurations.productionTestMods)
+		mods.from(tasks.named("gametestJar"))
+		rootProject.subprojects.findAll { it != project }.each { sibling ->
+			mods.from(sibling.tasks.named("jar"))
+		}
+	}
+
+	dependencies {
+		minecraft "com.mojang:minecraft:${project.minecraft_version}"
+		implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+		implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+		productionTestMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+		productionTestMods fabricApi.module("fabric-client-gametest-api-v1", project.fabric_api_version)
+		productionTestMods fabricApi.module("fabric-gametest-api-v1", project.fabric_api_version)
+	}
+
+	processResources {
+		def version = project.version
+		inputs.property "version", version
+
+		filesMatching("fabric.mod.json") {
+			expand "version": version
+		}
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		it.options.release = 25
+	}
+
+	java {
+		withSourcesJar()
+
+		sourceCompatibility = JavaVersion.VERSION_25
+		targetCompatibility = JavaVersion.VERSION_25
+	}
+
+	jar {
+		def projectName = project.name
+		inputs.property "projectName", projectName
+
+		from(rootProject.file("LICENSE")) {
+			rename { "${it}_$projectName" }
+		}
 	}
 }

@@ -1,0 +1,12 @@
+{
+	"schemaVersion": 1,
+	"id": "zombie_kingdom-gametest",
+	"version": "1.0.0",
+	"name": "zombie_kingdom game tests",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-client-gametest": [
+			"me.kowalkowski.zombiekingdom.test.ZombieKingdomClientGameTest"
+		]
+	}
+}
