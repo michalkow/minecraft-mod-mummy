@@ -37,6 +37,23 @@ fabricApi {
 	}
 }
 
+// Runs the client game tests against the built mod jar in a production-like game (as a launcher would run it),
+// alongside Fabric API, the game test API and the tests themselves.
+configurations {
+	productionTestMods
+}
+
+tasks.register("gametestJar", Jar) {
+	from sourceSets.gametest.output
+	archiveClassifier = "gametest"
+}
+
+tasks.register("runProductionClientGameTest", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+	jvmArgs.add("-Dfabric.client.gametest")
+	mods.from(configurations.productionTestMods)
+	mods.from(tasks.named("gametestJar"))
+}
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -44,6 +61,10 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	productionTestMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	productionTestMods fabricApi.module("fabric-client-gametest-api-v1", project.fabric_api_version)
+	productionTestMods fabricApi.module("fabric-gametest-api-v1", project.fabric_api_version)
 }
 
 processResources {

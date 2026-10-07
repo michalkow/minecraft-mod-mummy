@@ -1,4 +1,14 @@
 {
 	"entity.mummy.mummy": "Mummy",
-	"item.mummy.mummy_spawn_egg": "Mummy Spawn Egg"
+	"item.mummy.mummy_spawn_egg": "Mummy Spawn Egg",
+	"entity.mummy.zombie_king": "Zombie King",
+	"item.mummy.zombie_king_spawn_egg": "Zombie King Spawn Egg",
+	"entity.mummy.zombie_princess": "Zombie Princess",
+	"item.mummy.zombie_princess_spawn_egg": "Zombie Princess Spawn Egg",
+	"entity.mummy.verity": "Verity",
+	"item.mummy.verity_spawn_egg": "Verity Spawn Egg",
+	"entity.mummy.zombie_knight": "Zombie Knight",
+	"item.mummy.zombie_knight_spawn_egg": "Zombie Knight Spawn Egg",
+	"entity.mummy.zombie_archer": "Zombie Archer",
+	"item.mummy.zombie_archer_spawn_egg": "Zombie Archer Spawn Egg"
 }

@@ -1,6 +1,11 @@
 {
   "replace": false,
   "values": [
-    "mummy:mummy"
+    "mummy:mummy",
+    "mummy:zombie_king",
+    "mummy:zombie_princess",
+    "mummy:verity",
+    "mummy:zombie_knight",
+    "mummy:zombie_archer"
   ]
 }

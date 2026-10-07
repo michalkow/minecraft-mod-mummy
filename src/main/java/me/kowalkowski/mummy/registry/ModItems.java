@@ -6,25 +6,34 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
 
 public final class ModItems {
-	private static final ResourceKey<Item> MUMMY_SPAWN_EGG_KEY = ResourceKey.create(Registries.ITEM, MummyMod.id("mummy_spawn_egg"));
-
-	public static final Item MUMMY_SPAWN_EGG = Registry.register(
-		BuiltInRegistries.ITEM,
-		MUMMY_SPAWN_EGG_KEY,
-		new SpawnEggItem(new Item.Properties().spawnEgg(ModEntities.MUMMY).setId(MUMMY_SPAWN_EGG_KEY))
-	);
+	public static final Item MUMMY_SPAWN_EGG = registerSpawnEgg("mummy_spawn_egg", ModEntities.MUMMY);
+	public static final Item ZOMBIE_KING_SPAWN_EGG = registerSpawnEgg("zombie_king_spawn_egg", ModEntities.ZOMBIE_KING);
+	public static final Item ZOMBIE_PRINCESS_SPAWN_EGG = registerSpawnEgg("zombie_princess_spawn_egg", ModEntities.ZOMBIE_PRINCESS);
+	public static final Item VERITY_SPAWN_EGG = registerSpawnEgg("verity_spawn_egg", ModEntities.VERITY);
+	public static final Item ZOMBIE_KNIGHT_SPAWN_EGG = registerSpawnEgg("zombie_knight_spawn_egg", ModEntities.ZOMBIE_KNIGHT);
+	public static final Item ZOMBIE_ARCHER_SPAWN_EGG = registerSpawnEgg("zombie_archer_spawn_egg", ModEntities.ZOMBIE_ARCHER);
 
 	private ModItems() {
 	}
 
+	private static Item registerSpawnEgg(final String name, final EntityType<?> type) {
+		ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, MummyMod.id(name));
+		return Registry.register(BuiltInRegistries.ITEM, key, new SpawnEggItem(new Item.Properties().spawnEgg(type).setId(key)));
+	}
+
 	public static void init() {
-		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.SPAWN_EGGS)
-			.register(output -> output.insertAfter(Items.HUSK_SPAWN_EGG, MUMMY_SPAWN_EGG));
+		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.SPAWN_EGGS).register(output -> {
+			output.insertAfter(Items.HUSK_SPAWN_EGG, MUMMY_SPAWN_EGG);
+			output.insertAfter(
+				Items.ZOMBIE_SPAWN_EGG, ZOMBIE_KING_SPAWN_EGG, ZOMBIE_PRINCESS_SPAWN_EGG, ZOMBIE_KNIGHT_SPAWN_EGG, ZOMBIE_ARCHER_SPAWN_EGG, VERITY_SPAWN_EGG
+			);
+		});
 	}
 }

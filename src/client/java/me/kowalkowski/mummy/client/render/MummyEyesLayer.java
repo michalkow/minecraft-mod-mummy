@@ -14,11 +14,11 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
  * Full-bright glowing eyes, like the spider's and enderman's. Unlike the vanilla
  * EyesLayer it picks a texture per model, because the baby model has its own UV layout.
  */
-public class MummyEyesLayer extends RenderLayer<MummyRenderState, ZombieModel<MummyRenderState>> {
+public class MummyEyesLayer extends RenderLayer<ClothRenderState, ZombieModel<ClothRenderState>> {
 	private static final RenderType EYES = RenderTypes.eyes(MummyMod.id("textures/entity/mummy/mummy_eyes.png"));
 	private static final RenderType BABY_EYES = RenderTypes.eyes(MummyMod.id("textures/entity/mummy/mummy_baby_eyes.png"));
 
-	public MummyEyesLayer(final RenderLayerParent<MummyRenderState, ZombieModel<MummyRenderState>> renderer) {
+	public MummyEyesLayer(final RenderLayerParent<ClothRenderState, ZombieModel<ClothRenderState>> renderer) {
 		super(renderer);
 	}
 
@@ -27,7 +27,7 @@ public class MummyEyesLayer extends RenderLayer<MummyRenderState, ZombieModel<Mu
 		final PoseStack poseStack,
 		final SubmitNodeCollector submitNodeCollector,
 		final int lightCoords,
-		final MummyRenderState state,
+		final ClothRenderState state,
 		final float yRot,
 		final float xRot
 	) {

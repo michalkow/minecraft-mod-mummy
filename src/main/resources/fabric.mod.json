@@ -3,7 +3,7 @@
 	"id": "mummy",
 	"version": "${version}",
 	"name": "Mummy",
-	"description": "Adds the Mummy: a bandage-wrapped undead that roams deserts. Zombie stats, glowing eyes, and its own spawn egg.",
+	"description": "Adds the Mummy, a cute bandage-wrapped desert undead with flowing bandages, and rare zombie royalty: the Zombie King with a billowing red cape and the Zombie Princess in a swishing pink dress, who stick together and celebrate with fireworks; their knights (on zombie horses) and archers; abandoned zombie kingdoms with a castle and a stable; and Verity, the sunshine-yellow smiley zombie.",
 	"authors": [
 		"Michal Kowalkowski"
 	],
@@ -23,5 +23,8 @@
 		"minecraft": "~26.3",
 		"java": ">=25",
 		"fabric-api": "*"
-	}
+	},
+	"mixins": [
+		"mummy.mixins.json"
+	]
 }

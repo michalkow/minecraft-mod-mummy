@@ -2,6 +2,7 @@ package me.kowalkowski.mummy;
 
 import me.kowalkowski.mummy.registry.ModEntities;
 import me.kowalkowski.mummy.registry.ModItems;
+import me.kowalkowski.mummy.registry.ModStructures;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ public class MummyMod implements ModInitializer {
 	public void onInitialize() {
 		ModEntities.init();
 		ModItems.init();
+		ModStructures.init();
 		LOGGER.info("The mummies have awoken.");
 	}
 
